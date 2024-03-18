@@ -127,49 +127,56 @@ def evaluate_window(window, piece):
 
     if window.count(opp_piece) == 3 and window.count(0) == 1:
         score -= 4
+    elif window.count(opp_piece) == 4:
+        score -= 50
 
     return score
    
 
 def minimax(board, depth, alpha, beta, maximizingPlayer):
-    if terminal(board) or depth == 0:
-        if terminal(board):
-            if winning_move(board, AI_PIECE):
-                return (None, 100000000000000)
-            elif winning_move(board, PLAYER_PIECE):
-                return (None, -10000000000000)
-            else: # Game is over, no more valid moves
-                return (None, 0)
-        else: # Depth is zero
-            return (None, score_position(board, AI_PIECE))
-    if maximizingPlayer:
-        value = -math.inf
-        for action in actions(board):
-            row = get_next_open_row(board, action)
-            board_copy = board.copy()
-            drop_piece(board_copy, row, action, 2)
-            new_score = minimax(board_copy, depth-1, alpha, beta, False)[1]
-            if new_score > value:
-                value = new_score
-                column = action
-            alpha = max(alpha, value)
-            if alpha >= beta:
-                break
-        return column, value
-    else:
-        value = math.inf
-        for action in actions(board):
-            row = get_next_open_row(board, action)
-            board_copy = board.copy()
-            drop_piece(board_copy, row, action, 1)
-            new_score = minimax(board_copy, depth-1, alpha, beta, True)[1]
-            if new_score < value:
-                value = new_score
-                column = action
-            beta = min(beta, value)
-            if alpha >= beta:
-                break
-        return column, value
+	valid_locations = actions(board)
+	is_terminal = terminal(board)
+	if depth == 0 or is_terminal:
+		if is_terminal:
+			if winning_move(board, AI_PIECE):
+				return (None, 100000000000000)
+			elif winning_move(board, PLAYER_PIECE):
+				return (None, -10000000000000)
+			else: # Game is over, no more valid moves
+				return (None, 0)
+		else: # Depth is zero
+			return (None, score_position(board, AI_PIECE))
+	if maximizingPlayer:
+		value = -math.inf
+		column = random.choice(valid_locations)
+		for col in valid_locations:
+			row = get_next_open_row(board, col)
+			b_copy = board.copy()
+			drop_piece(b_copy, row, col, AI_PIECE)
+			new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+			if new_score > value:
+				value = new_score
+				column = col
+			alpha = max(alpha, value)
+			if alpha >= beta:
+				break
+		return column, value
+
+	else: # Minimizing player
+		value = math.inf
+		column = random.choice(valid_locations)
+		for col in valid_locations:
+			row = get_next_open_row(board, col)
+			b_copy = board.copy()
+			drop_piece(b_copy, row, col, PLAYER_PIECE)
+			new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
+			if new_score < value:
+				value = new_score
+				column = col
+			beta = min(beta, value)
+			if alpha >= beta:
+				break
+		return column, value
 
 def draw_board(board):
     for c in range(COLUMN_COUNT):
@@ -187,7 +194,8 @@ def draw_board(board):
 board = create_board()
 print_board(board)
 game_over = False
-turn = 0
+turn = 1
+
 
 pygame.init()
 

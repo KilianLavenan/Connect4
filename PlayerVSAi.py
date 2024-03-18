@@ -197,7 +197,6 @@ game_over = False
 turn = 1
 
 
-
 pygame.init()
 
 SQUARESIZE = 100
